@@ -36,8 +36,6 @@ System::Void ImageScale::MyForm::panel_image_Paint(System::Object^ sender, Syste
     if (image != nullptr) {
         panel_image->Width = image->Width;
         panel_image->Height = image->Height;
-        panel1->Width = image->Width;
-        panel1->Height = image->Height;
         e->Graphics->DrawImage(image, 0, 0, panel_image->ClientSize.Width, panel_image->ClientSize.Height);
     }
 }
@@ -91,7 +89,15 @@ System::Void ImageScale::MyForm::button_gaussian_Click(System::Object^ sender, S
 
             for (int ky = -halfFilterSize; ky <= halfFilterSize; ky++) {
                 for (int kx = -halfFilterSize; kx <= halfFilterSize; kx++) {
-                    Color pixelColor = image->GetPixel(x + kx, y + ky);
+                    int imageX = x + kx;
+                    int imageY = y + ky;
+
+                    if (imageX < 0) imageX = -imageX;
+                    if (imageX >= image->Width) imageX = 2 * image->Width - imageX - 1;
+                    if (imageY < 0) imageY = -imageY;
+                    if (imageY >= image->Height) imageY = 2 * image->Height - imageY - 1;
+                    Color pixelColor = image->GetPixel(imageX, imageY);
+
                     rValue += pixelColor.R * kernel[ky + halfFilterSize][kx + halfFilterSize];
                     gValue += pixelColor.G * kernel[ky + halfFilterSize][kx + halfFilterSize];
                     bValue += pixelColor.B * kernel[ky + halfFilterSize][kx + halfFilterSize];
@@ -189,16 +195,11 @@ System::Drawing::Color ImageScale::MyForm::BicubicInterpolation(float x, float y
 
     // Используем управляемый массив для хранения пикселей
     array<array<Color>^>^ pixels = gcnew array<array<Color>^>(4);
-    for (int i = 0; i < 4; ++i)
-    {
-        pixels[i] = gcnew array<Color>(4);
-    }
+    for (int i = 0; i < 4; ++i) pixels[i] = gcnew array<Color>(4);
 
     // Сбор пикселей (16 ближайших)
-    for (int i = -1; i <= 2; ++i)
-    {
-        for (int j = -1; j <= 2; ++j)
-        {
+    for (int i = -1; i <= 2; ++i) {
+        for (int j = -1; j <= 2; ++j) {
             int ix = Math::Min(Math::Max(x0 + i, 0), bitmap->Width - 1);
             int iy = Math::Min(Math::Max(y0 + j, 0), bitmap->Height - 1);
             pixels[i + 1][j + 1] = bitmap->GetPixel(ix, iy);
@@ -207,8 +208,7 @@ System::Drawing::Color ImageScale::MyForm::BicubicInterpolation(float x, float y
 
     // Интерполяция по X для каждого цвета
     float rx[4], gx[4], bx[4];
-    for (int i = 0; i < 4; ++i)
-    {
+    for (int i = 0; i < 4; ++i) {
         rx[i] = CubicInterpolate(pixels[i][0].R, pixels[i][1].R, pixels[i][2].R, pixels[i][3].R, x - x0);
         gx[i] = CubicInterpolate(pixels[i][0].G, pixels[i][1].G, pixels[i][2].G, pixels[i][3].G, x - x0);
         bx[i] = CubicInterpolate(pixels[i][0].B, pixels[i][1].B, pixels[i][2].B, pixels[i][3].B, x - x0);
@@ -258,10 +258,8 @@ System::Void ImageScale::MyForm::button_bicubic_Click(System::Object^ sender, Sy
     Bitmap^ result = gcnew Bitmap(newWidth, newHeight);
 
     // Применяем бикубическую интерполяцию для масштабирования
-    for (int y = 0; y < newHeight; y++)
-    {
-        for (int x = 0; x < newWidth; x++)
-        {
+    for (int y = 0; y < newHeight; y++) {
+        for (int x = 0; x < newWidth; x++) {
             // Находим соответствующие координаты в исходном изображении
             double srcX = x / scale;
             double srcY = y / scale;
@@ -273,7 +271,6 @@ System::Void ImageScale::MyForm::button_bicubic_Click(System::Object^ sender, Sy
             result->SetPixel(x, y, interpolatedColor);
         }
     }
-
 
     image = gcnew Bitmap(result);
     delete result;

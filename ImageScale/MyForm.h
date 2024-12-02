@@ -97,6 +97,7 @@ namespace ImageScale {
 			this->panel1->Controls->Add(this->button_openImage);
 			this->panel1->Controls->Add(this->button_reset);
 			this->panel1->Controls->Add(this->panel_image);
+			this->panel1->Dock = System::Windows::Forms::DockStyle::Fill;
 			this->panel1->Location = System::Drawing::Point(301, 0);
 			this->panel1->Name = L"panel1";
 			this->panel1->Size = System::Drawing::Size(901, 574);
